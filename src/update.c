@@ -150,7 +150,7 @@ undefined4 HTS_Update(void)
     iVar6 = 0;
     HTS_UpdateWallRelPositions(hts_thruWalls,hts_numThruWalls);
     psVar1 = hts_playerSector;
-    local_48 = (wall *)0x0;
+    local_48 = NULL;
     FP_SetInteger(-1);
     FP_CopyTo(&local_28);
     iVar4 = 0;
@@ -191,13 +191,13 @@ undefined4 HTS_Update(void)
           FP_Add(&thruWall->relStartX);
           iVar6 = FP_CompareTo(&hts_playerVel);
           if (iVar6 < 1) {
-            if (local_48 == (wall *)0x0) {
-              thruWall->next = (wall *)0x0;
+            if (local_48 == NULL) {
+              thruWall->next = NULL;
               local_48 = thruWall;
             }
             else {
               ppwVar3 = &local_48;
-              if (local_48 != (wall *)0x0) {
+              if (local_48 != NULL) {
                 do {
                   ppwVar9 = ppwVar3;
                   iVar6 = HTS_WallCompute2(*ppwVar9,thruWall);
@@ -207,8 +207,8 @@ undefined4 HTS_Update(void)
                     goto LAB_50306cf1;
                   }
                   ppwVar3 = &(*ppwVar9)->next;
-                } while ((*ppwVar9)->next != (wall *)0x0);
-                thruWall->next = (wall *)0x0;
+                } while ((*ppwVar9)->next != NULL);
+                thruWall->next = NULL;
                 (*ppwVar9)->next = thruWall;
               }
             }
@@ -220,7 +220,7 @@ LAB_50306cf1:
       } while (i < hts_numThruWalls);
     }
     pwVar2 = local_48;
-    if (hts_playerSector != (sector *)0x0) {
+    if (hts_playerSector != NULL) {
       FP_SetInteger(0x14);
       pdVar5 = &hts_playerZ;
       if ((hts_keys & 0x80) == 0) {
@@ -230,7 +230,7 @@ LAB_50306cf1:
       FP_CopyTo(&moveAmt);
       pwVar2 = local_48;
     }
-    for (; pwVar2 != (wall *)0x0; pwVar2 = pwVar2->next) {
+    for (; pwVar2 != NULL; pwVar2 = pwVar2->next) {
       psVar8 = pwVar2->sector1;
       if (psVar8 == psVar1) {
         psVar8 = pwVar2->sector2;

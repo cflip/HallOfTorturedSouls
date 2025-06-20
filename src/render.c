@@ -108,15 +108,15 @@ void HTS_AddSolidWallsToView(void)
     hts_viewspans[iVar2].thruWalls = NULL;
   }
   pvVar4 = &hts_viewspans[1];
-  hts_viewspans[999].next = (viewspan *)0x0;
+  hts_viewspans[999].next = NULL;
   FP_SetZero();
   FP_CopyTo(&hts_viewspans->firstColumn);
   FP_SetInteger(319);
   FP_CopyTo(&hts_viewspans->lastColumn);
   i = 0;
-  hts_viewspans->solidWalls = (wall *)0x0;
-  hts_viewspans->next = (viewspan *)0x0;
-  hts_viewspans->thruWalls = (wall *)0x0;
+  hts_viewspans->solidWalls = NULL;
+  hts_viewspans->next = NULL;
+  hts_viewspans->thruWalls = NULL;
   pWall = hts_solidWalls;
   if (0 < hts_numSolidWalls) {
     do {
@@ -126,12 +126,12 @@ void HTS_AddSolidWallsToView(void)
       cmp = FP_CompareTo(wallFirstCol);
       curSpan = hts_viewspans;
       if (cmp != 0) {
-        while ((curSpan != (viewspan *)0x0 &&
+        while ((curSpan != NULL &&
                (cmp = FP2_Compare(wallFirstCol,&curSpan->lastColumn), -1 < cmp))) {
           curSpan = curSpan->next;
         }
-        local_1c = (viewspan *)0x0;
-        if (curSpan != (viewspan *)0x0) {
+        local_1c = NULL;
+        if (curSpan != NULL) {
           wallLastCol = &pWall->lastColumn;
           pvVar3 = pvVar4;
           do {
@@ -145,7 +145,7 @@ void HTS_AddSolidWallsToView(void)
               if (cmp < 1) {
                 cmp = FP2_Compare(wallLastCol,&curSpan->lastColumn);
                 if (-1 < cmp) {
-                  if (local_1c == (viewspan *)0x0) {
+                  if (local_1c == NULL) {
                     *ppw = pWall;
                     if (hts_viewspans != curSpan) {
                       local_1c = curSpan;
@@ -170,7 +170,7 @@ void HTS_AddSolidWallsToView(void)
               cmp = FP2_Compare(wallFirstCol,&curSpan->firstColumn);
               pvVar4 = pwVar2;
               if (cmp < 1) {
-                if (local_1c == (viewspan *)0x0) {
+                if (local_1c == NULL) {
                   pvVar3->solidWalls = *ppw;
                   *ppw = pWall;
                   FP_Set(wallLastCol);
@@ -229,7 +229,7 @@ void HTS_AddSolidWallsToView(void)
 LAB_50305b6e:
             curSpan = curSpan->next;
             pvVar3 = pvVar4;
-          } while (curSpan != (viewspan *)0x0);
+          } while (curSpan != NULL);
         }
       }
       pWall = pWall + 1;
@@ -286,9 +286,9 @@ void HTS_SetupWallLinks(viewspan *span)
   wall *wall2;
   
   wall1 = span->thruWalls;
-  if (wall1 != (wall *)0x0) {
+  if (wall1 != NULL) {
     wall2 = wall1->next;
-    while (wall2 != (wall *)0x0) {
+    while (wall2 != NULL) {
       wall1 = wall1->next;
       wall2 = wall1->next;
     }
@@ -647,8 +647,8 @@ void HTS_Render(void)
   FP_Set(&hts_playerY);
   cmp = FP_AsInteger();
   hts_playerYFixed = cmp << 16;
-  hts_firstWallInColumn = (wall *)0x0;
-  hts_lastSpanThruWall = (wall *)0x0;
+  hts_firstWallInColumn = NULL;
+  hts_lastSpanThruWall = NULL;
   if (hts_rotationNeedsUpdate != 0) {
     HTS_UpdateRotationData();
   }
@@ -673,19 +673,19 @@ void HTS_Render(void)
     }
     wallptr3 = &hts_lastSpanThruWall;
     thruWall = hts_lastSpanThruWall;
-    while (thruWall != (wall *)0x0) {
+    while (thruWall != NULL) {
       cmp = FP2_Compare(&(*wallptr3)->firstColumn,&column);
       if (cmp < 1) {
         wallptr2 = *wallptr3;
         ppwVar1 = &wallptr2->next;
         *wallptr3 = *ppwVar1;
-        if (hts_firstWallInColumn == (wall *)0x0) {
+        if (hts_firstWallInColumn == NULL) {
           hts_firstWallInColumn = wallptr2;
-          *ppwVar1 = (wall *)0x0;
+          *ppwVar1 = NULL;
         }
         else {
           ppwVar2 = &hts_firstWallInColumn;
-          if (hts_firstWallInColumn != (wall *)0x0) {
+          if (hts_firstWallInColumn != NULL) {
             do {
               ppwVar3 = ppwVar2;
               cmp = HTS_WallCompute2(*ppwVar3,wallptr2);
@@ -696,8 +696,8 @@ void HTS_Render(void)
                 goto LAB_50306758;
               }
               ppwVar2 = &pwVar1->next;
-            } while (pwVar1->next != (wall *)0x0);
-            *ppwVar1 = (wall *)0x0;
+            } while (pwVar1->next != NULL);
+            *ppwVar1 = NULL;
             (*ppwVar3)->next = wallptr2;
           }
         }
@@ -710,7 +710,7 @@ LAB_50306758:
     }
     wallptr3 = &hts_firstWallInColumn;
     pwVar1 = hts_firstWallInColumn;
-    while (pwVar1 != (wall *)0x0) {
+    while (pwVar1 != NULL) {
       cmp = FP2_Compare(&(*wallptr3)->lastColumn,&column);
       if (cmp < 0) {
         *wallptr3 = (*wallptr3)->next;

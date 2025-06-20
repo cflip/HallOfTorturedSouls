@@ -199,8 +199,8 @@ undefined4 HTS_LoadMapData(void)
       wPtr->upperTex = tmp1;
       FP_SetInteger(0x10000);
       FP_CopyTo(&wPtr->fixedPointScale);
-      wPtr->sector2 = (sector *)0x0;
-      wPtr->sector1 = (sector *)0x0;
+      wPtr->sector2 = NULL;
+      wPtr->sector1 = NULL;
       wPtr->lowerTex = 0;
       break;
     case 'z':

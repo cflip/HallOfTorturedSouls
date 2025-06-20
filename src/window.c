@@ -52,7 +52,7 @@ undefined4 HTS_MakeCreditsBitmap(void)
     if (encodedByte == 0xff) {
       pixels = (byte *)GlobalAlloc(0,0x40000);
       hts_textures[14].pixels = pixels;
-      if (hts_textures[14].pixels != (byte *)0x0) {
+      if (hts_textures[14].pixels != NULL) {
         textLen = 0;
         xp = 0;
         do {

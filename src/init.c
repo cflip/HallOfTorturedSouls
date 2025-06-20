@@ -36,23 +36,23 @@ int HTS_InitPt2(void)
   undefined4 *alcptr;
   
   hts_alloc1 = (undefined4 *)GlobalAlloc(0,800);
-  if (hts_alloc1 == (undefined4 *)0x0) {
+  if (hts_alloc1 == NULL) {
     return 0;
   }
   hts_xRotTable = (double *)GlobalAlloc(0,0xa00);
-  if (hts_xRotTable == (double *)0x0) {
+  if (hts_xRotTable == NULL) {
     return 0;
   }
   hts_yRotTable = (double *)GlobalAlloc(0,0xa00);
-  if (hts_yRotTable == (double *)0x0) {
+  if (hts_yRotTable == NULL) {
     return 0;
   }
   hts_alloc4MidWidthDiv = (double *)GlobalAlloc(0,0xa00);
-  if (hts_alloc4MidWidthDiv == (double *)0x0) {
+  if (hts_alloc4MidWidthDiv == NULL) {
     return 0;
   }
   hts_textures = (textureinfo *)GlobalAlloc(0, sizeof(textureinfo) * 15);
-  if (hts_textures == (textureinfo *)0x0) {
+  if (hts_textures == NULL) {
     return 0;
   }
   counter = 0;
@@ -82,19 +82,19 @@ undefined4 HTS_InitMapStructures(void)
   
   HTS_GetScreenAndStride(&hts_screen,&hts_screenStride);
   hts_thruWalls = (wall *)GlobalAlloc(0,sizeof(wall) * 500);
-  if (hts_thruWalls == (wall *)0x0) {
+  if (hts_thruWalls == NULL) {
     return 0;
   }
   hts_solidWalls = (wall *)GlobalAlloc(0,sizeof(wall) * 500);
-  if (hts_solidWalls == (wall *)0x0) {
+  if (hts_solidWalls == NULL) {
     return 0;
   }
   hts_viewspans = (viewspan *)GlobalAlloc(0,sizeof(viewspan) * 1000);
-  if (hts_viewspans == (viewspan *)0x0) {
+  if (hts_viewspans == NULL) {
     return 0;
   }
   hts_sectors = (sector *)GlobalAlloc(0, sizeof(sector) * 100);
-  if (hts_sectors == (sector *)0x0) {
+  if (hts_sectors == NULL) {
     return 0;
   }
   FP_Add((double *)&fp_scalar1);
@@ -171,7 +171,7 @@ undefined4 HTS_ResetPlayerPos(void)
   FP_CopyTo(&hts_playerY);
   FP_SetZero();
   FP_CopyTo(&hts_playerRot);
-  hts_playerSector = (sector *)0x0;
+  hts_playerSector = NULL;
   return 1;
 }
 
@@ -187,28 +187,28 @@ void HTS_DoNothing(void)
 void HTS_FreeAll(void)
 
 {
-  if (hts_alloc1 != (undefined4 *)0x0) {
+  if (hts_alloc1 != NULL) {
     GlobalFree(hts_alloc1);
   }
-  if (hts_xRotTable != (double *)0x0) {
+  if (hts_xRotTable != NULL) {
     GlobalFree(hts_xRotTable);
   }
-  if (hts_yRotTable != (double *)0x0) {
+  if (hts_yRotTable != NULL) {
     GlobalFree(hts_yRotTable);
   }
-  if (hts_alloc4MidWidthDiv != (double *)0x0) {
+  if (hts_alloc4MidWidthDiv != NULL) {
     GlobalFree(hts_alloc4MidWidthDiv);
   }
-  if (hts_thruWalls != (wall *)0x0) {
+  if (hts_thruWalls != NULL) {
     GlobalFree(hts_thruWalls);
   }
-  if (hts_solidWalls != (wall *)0x0) {
+  if (hts_solidWalls != NULL) {
     GlobalFree(hts_solidWalls);
   }
-  if (hts_viewspans != (viewspan *)0x0) {
+  if (hts_viewspans != NULL) {
     GlobalFree(hts_viewspans);
   }
-  if (hts_textures != (textureinfo *)0x0) {
+  if (hts_textures != NULL) {
     GlobalFree(hts_textures);
   }
   if (hts_bitmapinfo != (LPBITMAPINFO)0x0) {
@@ -217,7 +217,7 @@ void HTS_FreeAll(void)
   if (hts_copiedBitmap != (LPBITMAPINFO)0x0) {
     GlobalFree(hts_copiedBitmap);
   }
-  if (hts_sectors != (sector *)0x0) {
+  if (hts_sectors != NULL) {
     GlobalFree(hts_sectors);
   }
   return;

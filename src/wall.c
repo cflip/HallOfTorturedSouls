@@ -93,7 +93,7 @@ undefined4 HTS_WallCompute2(wall *param_1,wall *param_2)
   double local_10;
   double local_8;
   
-  if (param_1 == (wall *)0x0) {
+  if (param_1 == NULL) {
     return 0;
   }
   screen1 = &param_1->firstColumn;
