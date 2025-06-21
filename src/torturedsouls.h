@@ -19,6 +19,24 @@
 #define HTS_CREDITS_HEIGHT	2048
 #define HTS_CREDITS_SIZE	(HTS_CREDITS_WIDTH * HTS_CREDITS_HEIGHT)
 
+// ENUMS
+
+// Input key bits
+enum
+{
+	HTS_INPUT_QUIT		= 0x01,
+	HTS_INPUT_TURNRIGHT	= 0x02,
+	HTS_INPUT_TURNLEFT	= 0x04,
+	HTS_INPUT_TURNING	= (HTS_INPUT_TURNLEFT | HTS_INPUT_TURNRIGHT),
+	HTS_INPUT_BACKWARD	= 0x08,
+	HTS_INPUT_FORWARD	= 0x10,
+	HTS_INPUT_MOVING	= (HTS_INPUT_BACKWARD | HTS_INPUT_FORWARD),
+	HTS_INPUT_RUN		= 0x20,
+	HTS_INPUT_ALT		= 0x40, // unused
+	HTS_INPUT_FLY		= 0x80,
+};
+#define HTS_KEYOFF(k) (0xff & ~(k))
+
 // STRUCT DEFINITIONS
 
 typedef struct sector
@@ -153,7 +171,7 @@ typedef struct textureinfo
 /* 5044c04c */	extern wall *hts_solidWalls;
 /* 5044c050 */	extern double hts_fastSpeed;
 /* 5044c058 */	extern LPBITMAPINFO hts_bitmapinfo;
-/* 5044c05c */	extern byte hts_keys;
+/* 5044c05c */	extern byte hts_input;
 /* 5044c060 */	extern undefined4 hts_screenStride;
 /* 5044c064 */	extern undefined4 hts_numSolidWalls;
 /* 5044c068 */	extern double hts_normalSpeed;

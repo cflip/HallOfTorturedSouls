@@ -32,11 +32,11 @@ undefined4 HTS_Update(void)
     double velocity;
 
     /* left or right turning? */
-    if ((hts_keys & 6) != 0)
+    if ((hts_input & HTS_INPUT_TURNING) != 0)
     {
         FP_Set(&hts_playerRot);
         /* turning right? */
-        if ((hts_keys & 2) != 0)
+        if ((hts_input & HTS_INPUT_TURNRIGHT) != 0)
         {
             FP_Add(&hts_rotSpeed);
             iVar4 = FP_CompareTo(&hts_scalarTwoPi);
@@ -47,7 +47,7 @@ undefined4 HTS_Update(void)
             hts_rotationNeedsUpdate = 1;
         }
         /* turning left? */
-        if ((hts_keys & 4) != 0)
+        if ((hts_input & HTS_INPUT_TURNLEFT) != 0)
         {
             FP_Sub(&hts_rotSpeed);
             iVar4 = FP_Sign();
@@ -60,13 +60,13 @@ undefined4 HTS_Update(void)
         FP_CopyTo(&hts_playerRot);
     }
     /* forward or backward movement? */
-    if ((hts_keys & 0x18) != 0)
+    if ((hts_input & HTS_INPUT_MOVING) != 0)
     {
         FP_SetInteger(5);
         FP_CopyTo(&moveAmt);
         /* shift key isn't down */
         pdVar5 = &hts_fastSpeed;
-        if ((hts_keys & 0x20) == 0)
+        if ((hts_input & HTS_INPUT_RUN) == 0)
         {
             pdVar5 = &hts_normalSpeed;
         }
@@ -74,13 +74,11 @@ undefined4 HTS_Update(void)
         FP_Div(&moveAmt);
         FP_CopyTo(&moveAmt);
         FP_Set(&hts_playerVel);
-        /* moving forward? */
-        if ((hts_keys & 0x10) != 0)
+        if ((hts_input & HTS_INPUT_FORWARD) != 0)
         {
             FP_Add(&moveAmt);
         }
-        /* moving backward? */
-        if ((hts_keys & 8) != 0)
+        if ((hts_input & HTS_INPUT_BACKWARD) != 0)
         {
             FP_Sub(&moveAmt);
         }
@@ -256,7 +254,7 @@ undefined4 HTS_Update(void)
         {
             FP_SetInteger(0x14);
             pdVar5 = &hts_playerZ;
-            if ((hts_keys & 0x80) == 0)
+            if ((hts_input & HTS_INPUT_FLY) == 0)
             {
                 pdVar5 = &hts_playerSector->floorHeight;
             }
@@ -298,7 +296,7 @@ undefined4 HTS_Update(void)
         FP_Add(&hts_playerY);
         FP_CopyTo(&hts_playerY);
         psVar8 = (sector *)&hts_playerZ;
-        if ((hts_keys & 0x80) == 0)
+        if ((hts_input & HTS_INPUT_FLY) == 0)
         {
             psVar8 = psVar1;
         }

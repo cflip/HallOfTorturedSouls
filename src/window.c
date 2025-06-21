@@ -327,7 +327,7 @@ LRESULT CALLBACK HTS_WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
     case WM_ACTIVATEAPP:
         if (wParam == 0)
         {
-            hts_keys = hts_keys | 1;
+            hts_input |= HTS_INPUT_QUIT;
         }
         break;
     case WM_PAINT:
@@ -338,10 +338,10 @@ LRESULT CALLBACK HTS_WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
         EndPaint(hWnd, &ps);
         return 0;
     case WM_PALETTECHANGED:
-        hts_keys = hts_keys | 1;
+        hts_input |= HTS_INPUT_QUIT;
         break;
     case WM_QUIT:
-        hts_keys = hts_keys | 1;
+        hts_input |= HTS_INPUT_QUIT;
         return 0;
     case WM_DESTROY:
         break;
@@ -403,7 +403,7 @@ void HTS_ReadWindowMessages(void)
                 return;
             }
         }
-        hts_keys = hts_keys | 1;
+        hts_input |= HTS_INPUT_QUIT;
     }
     return;
 }

@@ -28,7 +28,7 @@ double hts_fastSpeed;
 byte *hts_creditsTexPixels;
 undefined4 DAT_50453cc8 = 0x438;
 undefined4 DAT_50453cd0;
-byte hts_keys;
+byte hts_input;
 undefined4 hts_cheatCodeProgress;
 undefined4 hts_cheatCodeTimeout;
 
@@ -89,74 +89,74 @@ LAB_50304653:
         key = GetAsyncKeyState(VK_ESCAPE);
         if ((key & 0xf000) == 0)
         {
-            hts_keys = hts_keys & 0xfe;
+            hts_input &= HTS_KEYOFF(HTS_INPUT_QUIT);
         }
         else
         {
-            hts_keys = hts_keys | 1;
+            hts_input |= HTS_INPUT_QUIT;
         }
         key = GetAsyncKeyState(VK_RIGHT);
         if ((key & 0xf000) == 0)
         {
-            hts_keys = hts_keys & 0xfd;
+            hts_input &= HTS_KEYOFF(HTS_INPUT_TURNRIGHT);
         }
         else
         {
-            hts_keys = hts_keys | 2;
+            hts_input |= HTS_INPUT_TURNRIGHT;
         }
         key = GetAsyncKeyState(VK_LEFT);
         if ((key & 0xf000) == 0)
         {
-            hts_keys = hts_keys & 0xfb;
+            hts_input &= HTS_KEYOFF(HTS_INPUT_TURNLEFT);
         }
         else
         {
-            hts_keys = hts_keys | 4;
+            hts_input |= HTS_INPUT_TURNLEFT;
         }
         key = GetAsyncKeyState(VK_DOWN);
         if ((key & 0xf000) == 0)
         {
-            hts_keys = hts_keys & 0xf7;
+            hts_input &= HTS_KEYOFF(HTS_INPUT_BACKWARD);
         }
         else
         {
-            hts_keys = hts_keys | 8;
+            hts_input |= HTS_INPUT_BACKWARD;
         }
         key = GetAsyncKeyState(VK_UP);
         if ((key & 0xf000) == 0)
         {
-            hts_keys = hts_keys & 0xef;
+            hts_input &= HTS_KEYOFF(HTS_INPUT_FORWARD);
         }
         else
         {
-            hts_keys = hts_keys | 0x10;
+            hts_input |= HTS_INPUT_FORWARD;
         }
         key = GetAsyncKeyState(VK_LCONTROL);
         if ((key & 0xf000) == 0)
         {
-            hts_keys = hts_keys & 0x7f;
+            hts_input &= HTS_KEYOFF(HTS_INPUT_FLY);
         }
         else
         {
-            hts_keys = hts_keys | 0x80;
+            hts_input |= HTS_INPUT_FLY;
         }
         key = GetAsyncKeyState(VK_LSHIFT);
         if ((key & 0xf000) == 0)
         {
-            hts_keys = hts_keys & 0xdf;
+            hts_input &= HTS_KEYOFF(HTS_INPUT_RUN);
         }
         else
         {
-            hts_keys = hts_keys | 0x20;
+            hts_input |= HTS_INPUT_RUN;
         }
         key = GetAsyncKeyState(VK_LMENU);
         if ((key & 0xf000) == 0)
         {
-            hts_keys = hts_keys & 0xbf;
+            hts_input &= HTS_KEYOFF(HTS_INPUT_ALT);
         }
         else
         {
-            hts_keys = hts_keys | 0x40;
+            hts_input |= HTS_INPUT_ALT;
         }
         key = GetAsyncKeyState(L'D');
         if ((key & 0xf000) != 0)
@@ -289,8 +289,7 @@ LAB_50304653:
             currentTicks = 0;
             HTS_ReadWindowMessages();
         }
-        /* is the quit key pressed? */
-        if ((hts_keys & 1) != 0)
+        if ((hts_input & HTS_INPUT_QUIT) != 0)
             break;
         hts_textures[14].pixels = hts_textures[14].pixels + -1;
         lastTicks = DAT_50453cd0;
