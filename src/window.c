@@ -224,7 +224,7 @@ undefined4 HTS_SetupFramebuffer(void)
         h = CreateDIBSection(hts_dc, hts_bitmapinfo, 0, &hts_dibSectionBits, (HANDLE)0x0, 0);
         hts_brush = SelectObject(hts_dc, h);
         PatBlt(hts_dc, 0, 0, 320, 200, BLACKNESS);
-        XL_CopyArray((undefined1 *)hts_bitmapinfo, (undefined1 *)hts_copiedBitmap, 1064);
+        XL_CopyArray((byte *)hts_bitmapinfo, (byte *)hts_copiedBitmap, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
         (hts_copiedBitmap->bmiHeader).biWidth = 0x80;
         (hts_copiedBitmap->bmiHeader).biHeight = -0x800;
         hts_hCreditsDC = CreateCompatibleDC((HDC)0x0);

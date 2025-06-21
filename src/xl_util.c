@@ -1,16 +1,15 @@
-/*
- *  xl_util.c
+/**
+ * xl_util.c
  *
  * Miscellaneous utility functions that are used across the Excel codebase.
  */
 
 #include "torturedsouls.h"
 
-/*
+/**
  * Calculates the length of a null-terminated string, just like strlen().
  */
 int XL_StringLength(char *str)
-
 {
     char *ptr;
     char *next;
@@ -26,52 +25,54 @@ int XL_StringLength(char *str)
     return (int)(next - 1 - str);
 }
 
-/*
- * Copies `count` bytes from `src` to `dst`.
+/**
+ * Copies `count` bytes from `src` to `dst`, and returns a pointer to the end of the copied result.
  */
-undefined *XL_CopyArray(undefined1 *src, undefined1 *dst, uint count)
-
+byte *XL_CopyArray(byte *src, byte *dst, uint count)
 {
     uint i;
-    undefined4 *pSrc;
-    undefined1 *puVar1;
-    undefined4 *pDst;
-    undefined1 *puVar2;
+    uint *src4;
+    byte *srcLeft;
+    uint *dst4;
+    byte *dstLeft;
 
     if (count != 0)
     {
         if (src <= dst)
         {
-            pSrc = (undefined4 *)(src + (count - 4));
-            pDst = (undefined4 *)(dst + (count - 4));
-            for (i = count >> 2; i != 0; i = i - 1)
+            // Copy four bytes at a time
+            src4 = (uint *)(src + (count - 4));
+            dst4 = (uint *)(dst + (count - 4));
+            for (i = count >> 2; i != 0; i--)
             {
-                *pDst = *pSrc;
-                pSrc = pSrc + -1;
-                pDst = pDst + -1;
+                *dst4 = *src4;
+                src4--;
+                dst4--;
             }
-            puVar1 = (undefined1 *)((char *)pSrc + 3);
-            puVar2 = (undefined1 *)((char *)pDst + 3);
-            for (i = count & 3; i != 0; i = i - 1)
+            // Copy remaining bytes if count is not a multiple of 4
+            srcLeft = (byte *)((byte *)src4 + 3);
+            dstLeft = (byte *)((byte *)dst4 + 3);
+            for (i = count & 3; i != 0; i--)
             {
-                *puVar2 = *puVar1;
-                puVar1 = puVar1 + -1;
-                puVar2 = puVar2 + -1;
+                *dstLeft = *srcLeft;
+                srcLeft--;
+                dstLeft--;
             }
             return dst + count;
         }
-        pSrc = (undefined4 *)dst;
-        for (i = count >> 2; i != 0; i = i - 1)
+        // Same as above, but src4 is now used as the destination pointer
+        src4 = (uint *)dst;
+        for (i = count >> 2; i != 0; i--)
         {
-            *pSrc = *(undefined4 *)src;
-            src = (undefined1 *)((char *)src + 4);
-            pSrc = pSrc + 1;
+            *src4 = *(uint *)src;
+            src += 4;
+            src4++;
         }
-        for (i = count & 3; i != 0; i = i - 1)
+        for (i = count & 3; i != 0; i--)
         {
-            *(undefined1 *)pSrc = *src;
-            src = (undefined1 *)((char *)src + 1);
-            pSrc = (undefined4 *)((char *)pSrc + 1);
+            *(byte *)src4 = *src;
+            src += 1;
+            src4 = (uint *)((byte *)src4 + 1);
         }
     }
     return dst + count;

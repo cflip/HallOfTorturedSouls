@@ -308,7 +308,7 @@ void HTS_UpdateWallRelPositions(wall *walls, int numWalls)
                     if (0 < iVar1)
                     {
                         FP_Set(firstCol);
-                        XL_CopyArray((undefined1 *)lastCol, (undefined1 *)firstCol, 8);
+                        XL_CopyArray((byte *)lastCol, (byte *)firstCol, sizeof(double));
                         FP_CopyTo(lastCol);
                     }
                     FP_Set(relStartX);

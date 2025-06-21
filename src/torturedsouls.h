@@ -109,7 +109,7 @@ typedef struct textureinfo
 /* 50306f94 */	bool HTS_Initialize(void);
 
 /* 5014a22c */	int XL_StringLength(char *str);
-/* 501548a7 */	undefined * XL_CopyArray(undefined1 *src,undefined1 *dst,uint count);
+/* 501548a7 */	byte *XL_CopyArray(byte *src, byte *dst, uint count);
 
 // GLOBAL VARIABLES
 
