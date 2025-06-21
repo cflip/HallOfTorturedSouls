@@ -16,15 +16,15 @@ HINSTANCE xl_hInstance;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
-	UNREFERENCED_PARAMETER(nShowCmd);
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+    UNREFERENCED_PARAMETER(nShowCmd);
 
-	xl_hInstance = hInstance;
+    xl_hInstance = hInstance;
 
-	HTS_RunGame();
+    HTS_RunGame();
 
-	return 0;
+    return 0;
 }
 
 #endif
