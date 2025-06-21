@@ -1,8 +1,18 @@
+/**
+ * map.c
+ *
+ * Map loading code; contains a utility function for parsing numerical values from a string list and the function that
+ * parses the map data and loads it into the various structures used by the game.
+ */
+
 #include "floating.h"
 #include "torturedsouls.h"
 
-BOOL HTS_CopyLine(char *src, char *dst)
-
+/**
+ * Copies up to 255 characters from `src` to `dst`, and adds a null terminator at the end. Returns true on success, and
+ * false if the source string was too long.
+ */
+bool HTS_CopyLine(char *src, char *dst)
 {
     int i;
     char c;
@@ -11,21 +21,21 @@ BOOL HTS_CopyLine(char *src, char *dst)
     while ((c = src[i], c != '\n' && (c != '\0')))
     {
         dst[i] = c;
-        i = i + 1;
-        if (0xfe < i)
+        i++;
+        if (i >= 255)
         {
-            return 0;
+            return false;
         }
     }
     dst[i] = '\0';
-    return 1;
+    return true;
 }
 
-/* Parses a double from the given list of strings, incrementing the pointer and storing the result
-   in the global 64-bit float */
-
+/**
+ * Parses a double from the given list of strings, incrementing the pointer and storing the result in the global 64-bit
+ * float.
+ */
 void HTS_ParseDecimal(char **strlist)
-
 {
     char *nextString;
     bool isNegative;
@@ -41,39 +51,43 @@ void HTS_ParseDecimal(char **strlist)
     FP_CopyTo(&result);
     FP_SetInteger(10);
     FP_CopyTo(&value10);
-    /* find next number in the string list */
+
+    // Find next number in the string list
     if (**strlist != '\0')
     {
         while (true)
         {
             start = **strlist;
-            if ((('/' < (byte)start) && ((byte)start < ':')) || (start == '-'))
+            if ((start >= '0' && start <= '9') || (start == '-'))
                 break;
             if ((start == '.') || (currentString = *strlist + 1, *strlist = currentString, *currentString == '\0'))
                 break;
         }
     }
+
     isNegative = **strlist == '-';
     if (isNegative)
     {
-        *strlist = *strlist + 1;
+        // Skip over the minus sign
+        (*strlist)++;
     }
+
+    // Read in a number as long as there are more digits to read
     digitChar = **strlist;
-    /* read in a number */
-    while (('/' < (byte)digitChar && ((byte) * *strlist < ':')))
+    while (digitChar >= '0' && **strlist <= '9')
     {
         FP_Set(&value10);
         FP_Mul(&result);
         FP_CopyTo(&result);
-        FP_SetInteger((byte) * *strlist - L'0');
+        FP_SetInteger(**strlist - '0');
         FP_Add(&result);
         FP_CopyTo(&result);
         currentString = *strlist;
         *strlist = currentString + 1;
         digitChar = currentString[1];
     }
-    /* parse a decimal point */
-    /* NOTE: This only parses a single decimal point */
+
+    // Parse a single decimal point value if a point exists
     if (**strlist == '.')
     {
         nextString = *strlist + 1;
@@ -82,31 +96,36 @@ void HTS_ParseDecimal(char **strlist)
         FP_Div(&value10);
         FP_Add(&result);
         FP_CopyTo(&result);
-        *strlist = *strlist + 1;
+        (*strlist)++;
     }
-    /* advance strlist pointer to next number or end of a string */
+
+    // Advance strlist pointer to next number or end of a string
     end = **strlist;
     while (end != '\0')
     {
         tmpEnd = **strlist;
-        if ((('/' < (byte)tmpEnd) && ((byte)tmpEnd < ':')) || (tmpEnd == '-'))
+        if ((tmpEnd >= '0' && tmpEnd <= '9') || (tmpEnd == '-'))
             break;
         currentString = *strlist + 1;
         *strlist = currentString;
         end = *currentString;
     }
+
     FP_Set(&result);
     if (isNegative)
     {
         FP_Negate();
     }
+
     return;
 }
 
-undefined4 HTS_LoadMapData(void)
-
+/**
+ * Reads through each line of the map data string and sets up the relevant data structures.
+ */
+bool HTS_LoadMapData(void)
 {
-    int copyResult;
+    bool didCopy;
     undefined4 tmp1;
     int tmp2;
     int i;
@@ -125,27 +144,29 @@ undefined4 HTS_LoadMapData(void)
     FP_SetZero();
     FP_CopyTo(&offsetX);
     FP_CopyTo(&offsetY);
-    hts_numSolidWalls = 0;
-    hts_numThruWalls = 0;
-    hts_numSectors = 0;
     FP_CopyTo(&hts_sectors->floorHeight);
     FP_SetInteger(10);
     FP_CopyTo(&hts_sectors->ceilHeight);
-    i = 0;
     FP_CopyTo(&scale);
+
+    hts_numSolidWalls = 0;
+    hts_numThruWalls = 0;
+    hts_numSectors = 0;
+    i = 0;
     hts_sectors->floorCol = 13;
     hts_sectors->ceilCol = 9;
-    copyResult = HTS_CopyLine(hts_mapData[i], line);
+
+    didCopy = HTS_CopyLine(hts_mapData[i], line);
     counter = hts_numThruWalls;
     tmp2 = hts_numSolidWalls;
-    while ((copyResult != 0 && (line[0] != '\0')))
+    while (didCopy && line[0] != '\0')
     {
         hts_numThruWalls = counter;
         hts_numSolidWalls = tmp2;
         switch (line[0])
         {
         case 'b':
-            /* sets the position offset for a group of walls */
+            // Set the position offset values for any future walls
             coordStr = line + 2;
             HTS_ParseDecimal(&coordStr);
             FP_Mul(&scale);
@@ -155,6 +176,7 @@ undefined4 HTS_LoadMapData(void)
             FP_CopyTo(&offsetY);
             break;
         case 'e':
+            // Define a sector and its floor height, ceiling height, floor colour, and ceiling colour
             coordStr = line + 2;
             HTS_ParseDecimal(&coordStr);
             FP_Mul(&scale);
@@ -171,7 +193,7 @@ undefined4 HTS_LoadMapData(void)
             hts_numSectors = hts_numSectors + 1;
             break;
         case 's':
-            /* starting position */
+            // Set the player's starting X, Y, Z, and the index of the starting sector
             coordStr = line + 2;
             HTS_ParseDecimal(&coordStr);
             FP_Mul(&scale);
@@ -187,7 +209,7 @@ undefined4 HTS_LoadMapData(void)
             HTS_SetCameraPos(&loadedX, &loadedY, &loadedZ, tmp1);
             break;
         case 'w':
-            /* one-sided wall */
+            // Add a solid wall from a start X, Y, an end X, Y, and a texture index
             coordStr = line + 2;
             hts_numSolidWalls = tmp2 + 1;
             wPtr = hts_solidWalls + tmp2;
@@ -217,7 +239,7 @@ undefined4 HTS_LoadMapData(void)
             wPtr->lowerTex = 0;
             break;
         case 'z':
-            /* two-sided wall */
+            // Add a line connecting two sectors from a start X, Y, and an end X, Y
             coordStr = line + 2;
             hts_numThruWalls = counter + 1;
             zPtr = hts_thruWalls + counter;
@@ -239,7 +261,7 @@ undefined4 HTS_LoadMapData(void)
             FP_CopyTo(&zPtr->endY);
             FP_SetInteger(0x10000);
             FP_CopyTo(&zPtr->fixedPointScale);
-            /* move to next line (should start with 'x') */
+            // Move to next line, which should start with 'x' and contain the sectors and textures for the current wall
             HTS_CopyLine(hts_mapData[i + 1], line);
             coordStr = line + 2;
             HTS_ParseDecimal(&coordStr);
@@ -258,17 +280,16 @@ undefined4 HTS_LoadMapData(void)
         }
         // counter = i * 25;
         i++;
-        copyResult = HTS_CopyLine(hts_mapData[i], line);
+        didCopy = HTS_CopyLine(hts_mapData[i], line);
         counter = hts_numThruWalls;
         tmp2 = hts_numSolidWalls;
     }
     hts_numThruWalls = counter;
     hts_numSolidWalls = tmp2;
-    return 1;
+    return true;
 }
 
 void HTS_SetCameraPos(double *x, double *y, double *z, int sector)
-
 {
     FP_Set(x);
     FP_CopyTo(&hts_playerX);

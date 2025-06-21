@@ -107,9 +107,9 @@ typedef struct textureinfo
 /* 50303c03 */	void HTS_SetupPalette(void);
 /* 50303d6b */	void HTS_SetupWindow(void);
 /* 50303e62 */	void HTS_Cleanup(void);
-/* 50303eb1 */	int HTS_CopyLine(char *src,char *dst);
+/* 50303eb1 */	bool HTS_CopyLine(char *src,char *dst);
 /* 50303ee6 */	void HTS_ParseDecimal(char **strlist);
-/* 5030401b */	undefined4 HTS_LoadMapData(void);
+/* 5030401b */	bool HTS_LoadMapData(void);
 /* 50304535 */	void HTS_ReadWindowMessages(void);
 /* 503045a9 */	void HTS_RunGame(void);
 /* 50304b24 */	void HTS_UpdateSectorRelHeights(void);
