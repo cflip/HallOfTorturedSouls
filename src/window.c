@@ -6,7 +6,7 @@
 
 #include "torturedsouls.h"
 
-HDC hts_hDC1;
+HDC hts_windowDC;
 HPALETTE hts_palette;
 
 HWND hts_hWnd;
@@ -140,58 +140,60 @@ bool HTS_MakeCreditsBitmap(void)
     return false;
 }
 
-undefined4 HTS_SetupFramebuffer(void)
-
+/**
+ * Creates the bitmaps for the screen and credits image and loads the palette data.
+ */
+bool HTS_SetupFramebuffer(void)
 {
-    undefined4 success;
+    bool success;
     HDC hdc;
     HBITMAP h;
     int srcIndex;
-    PALETTEENTRY *entries;
     int dstIndex;
+    PALETTEENTRY *entries;
     LOGPALETTE logicalPalette[128];
     BYTE colour;
 
-    logicalPalette[0].palVersion = 0x300;
     success = 0;
+
+    logicalPalette[0].palVersion = 0x300;
     logicalPalette[0].palNumEntries = 256;
     entries = logicalPalette[0].palPalEntry;
-    for (srcIndex = 256; srcIndex != 0; srcIndex = srcIndex + -1)
+    for (srcIndex = 256; srcIndex != 0; srcIndex--)
     {
-        entries->peRed = '\0';
-        entries->peGreen = '\0';
-        entries->peBlue = '\0';
-        entries->peFlags = '\0';
-        entries = entries + 1;
+        entries->peRed = 0;
+        entries->peGreen = 0;
+        entries->peBlue = 0;
+        entries->peFlags = 0;
+        entries++;
     }
+
     if (DAT_5044d988 != 0)
     {
-        hts_bitmapinfo = (LPBITMAPINFO)GlobalAlloc(0, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
-        if (hts_bitmapinfo == (LPBITMAPINFO)0x0)
-        {
-            return 0;
-        }
-        hts_creditsBitmapInfo = (LPBITMAPINFO)GlobalAlloc(0, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
-        if (hts_creditsBitmapInfo == (LPBITMAPINFO)0x0)
-        {
-            return 0;
-        }
-        (hts_bitmapinfo->bmiHeader).biSize = sizeof(BITMAPINFOHEADER);
-        (hts_bitmapinfo->bmiHeader).biPlanes = 1;
-        (hts_bitmapinfo->bmiHeader).biBitCount = 8;
-        (hts_bitmapinfo->bmiHeader).biCompression = 0;
-        (hts_bitmapinfo->bmiHeader).biSizeImage = 0;
-        (hts_bitmapinfo->bmiHeader).biClrUsed = 0;
-        (hts_bitmapinfo->bmiHeader).biClrImportant = 0;
-        (hts_bitmapinfo->bmiHeader).biWidth = 320;
-        (hts_bitmapinfo->bmiHeader).biHeight = -200;
-        hdc = GetDC((HWND)0x0);
+        hts_bitmapinfo = GlobalAlloc(0, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
+        if (hts_bitmapinfo == NULL)
+            return false;
+        hts_creditsBitmapInfo = GlobalAlloc(0, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
+        if (hts_creditsBitmapInfo == NULL)
+            return false;
+
+        hts_bitmapinfo->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        hts_bitmapinfo->bmiHeader.biPlanes = 1;
+        hts_bitmapinfo->bmiHeader.biBitCount = 8;
+        hts_bitmapinfo->bmiHeader.biCompression = 0;
+        hts_bitmapinfo->bmiHeader.biSizeImage = 0;
+        hts_bitmapinfo->bmiHeader.biClrUsed = 0;
+        hts_bitmapinfo->bmiHeader.biClrImportant = 0;
+        hts_bitmapinfo->bmiHeader.biWidth = HTS_SCREEN_WIDTH;
+        hts_bitmapinfo->bmiHeader.biHeight = -HTS_SCREEN_HEIGHT;
+
+        hdc = GetDC(NULL);
         GetSystemPaletteEntries(hdc, 0, 10, logicalPalette[0].palPalEntry);
         GetSystemPaletteEntries(hdc, 246, 10, &logicalPalette[0].palPalEntry[246]);
-        ReleaseDC((HWND)0x0, hdc);
+        ReleaseDC(NULL, hdc);
 
         srcIndex = 0;
-        do
+        while (srcIndex < 10)
         {
             hts_bitmapinfo->bmiColors[srcIndex].rgbRed = logicalPalette[0].palPalEntry[srcIndex].peRed;
             hts_bitmapinfo->bmiColors[srcIndex].rgbGreen = logicalPalette[0].palPalEntry[srcIndex].peGreen;
@@ -205,52 +207,58 @@ undefined4 HTS_SetupFramebuffer(void)
             hts_bitmapinfo->bmiColors[srcIndex + 246].rgbReserved = 0;
             logicalPalette[0].palPalEntry[srcIndex + 246].peFlags = 0;
             srcIndex++;
-        } while (srcIndex < 10);
+        }
 
         dstIndex = 40;
         srcIndex = 0;
-        do
+        while (dstIndex < (246 * 4))
         {
             colour = hts_paletteColours[srcIndex];
             (&logicalPalette[0].palPalEntry[0].peRed)[dstIndex] = colour;
             (&hts_bitmapinfo->bmiColors[0].rgbRed)[dstIndex] = colour;
+
             colour = hts_paletteColours[srcIndex + 1];
             (&logicalPalette[0].palPalEntry[0].peGreen)[dstIndex] = colour;
             (&hts_bitmapinfo->bmiColors[0].rgbGreen)[dstIndex] = colour;
+
             colour = hts_paletteColours[srcIndex + 2];
             (&logicalPalette[0].palPalEntry[0].peBlue)[dstIndex] = colour;
             (&hts_bitmapinfo->bmiColors[0].rgbBlue)[dstIndex] = colour;
+
             (&hts_bitmapinfo->bmiColors[0].rgbReserved)[dstIndex] = 0;
             (&logicalPalette[0].palPalEntry[0].peFlags)[dstIndex] = PC_NOCOLLAPSE;
-            dstIndex = dstIndex + 4;
-            srcIndex = srcIndex + 3;
-        } while (dstIndex < 984);
+
+            dstIndex += 4;
+            srcIndex += 3;
+        };
 
         hts_palette = CreatePalette(logicalPalette);
-        hts_dc = CreateCompatibleDC((HDC)0x0);
+
+        hts_dc = CreateCompatibleDC(NULL);
         SelectPalette(hts_dc, hts_palette, 0);
         RealizePalette(hts_dc);
-        h = CreateDIBSection(hts_dc, hts_bitmapinfo, 0, &hts_dibSectionBits, (HANDLE)0x0, 0);
+        h = CreateDIBSection(hts_dc, hts_bitmapinfo, 0, &hts_dibSectionBits, NULL, 0);
         hts_brush = SelectObject(hts_dc, h);
-        PatBlt(hts_dc, 0, 0, 320, 200, BLACKNESS);
+        PatBlt(hts_dc, 0, 0, HTS_SCREEN_WIDTH, HTS_SCREEN_HEIGHT, BLACKNESS);
+
         XL_CopyArray(
             (byte *)hts_bitmapinfo, (byte *)hts_creditsBitmapInfo, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
-        (hts_creditsBitmapInfo->bmiHeader).biWidth = 0x80;
-        (hts_creditsBitmapInfo->bmiHeader).biHeight = -0x800;
-        hts_hCreditsDC = CreateCompatibleDC((HDC)0x0);
+        hts_creditsBitmapInfo->bmiHeader.biWidth = HTS_CREDITS_WIDTH;
+        hts_creditsBitmapInfo->bmiHeader.biHeight = -HTS_CREDITS_HEIGHT;
+
+        hts_hCreditsDC = CreateCompatibleDC(NULL);
         SelectPalette(hts_hCreditsDC, hts_palette, 0);
         RealizePalette(hts_hCreditsDC);
         hts_creditsBitmap =
-            CreateDIBSection(hts_hCreditsDC, hts_creditsBitmapInfo, 0, (void **)&hts_creditsTexPixels, (HANDLE)0x0, 0);
+            CreateDIBSection(hts_hCreditsDC, hts_creditsBitmapInfo, 0, (void **)&hts_creditsTexPixels, NULL, 0);
         hts_creditsSelectedBitmap = SelectObject(hts_hCreditsDC, hts_creditsBitmap);
-        PatBlt(hts_hCreditsDC, 0, 0, 0x80, 0x800, 0x42);
+        PatBlt(hts_hCreditsDC, 0, 0, HTS_CREDITS_WIDTH, HTS_CREDITS_HEIGHT, BLACKNESS);
         success = HTS_MakeCreditsBitmap();
     }
     return success;
 }
 
 void HTS_GetScreenAndStride(byte **screenOut, uint *strideOut)
-
 {
     *screenOut = (byte *)hts_dibSectionBits;
     *strideOut = (((hts_bitmapinfo->bmiHeader.biWidth * hts_bitmapinfo->bmiHeader.biBitCount) + 31) & ~31) >> 3;
@@ -258,42 +266,35 @@ void HTS_GetScreenAndStride(byte **screenOut, uint *strideOut)
 }
 
 void HTS_CopyFramebuffer(void)
-
 {
-    BitBlt(hts_hDC1, 0, 0, 320, 200, hts_dc, 0, 0, SRCCOPY);
+    BitBlt(hts_windowDC, 0, 0, HTS_SCREEN_WIDTH, HTS_SCREEN_HEIGHT, hts_dc, 0, 0, SRCCOPY);
     return;
 }
 
 void HTS_SetupPalette(void)
-
 {
     PALETTEENTRY *entries;
     HPALETTE hPalette;
+    LOGPALETTE logicalPalette[128]; // Need enough room on the stack for 256 palette entries
     int i;
-    LOGPALETTE logicalPalette[128]; // need enough room on the stack for 256 palette entries
 
     logicalPalette[0].palVersion = 0x300;
     logicalPalette[0].palNumEntries = 256;
+
+    // Coding oversight? The palette entries are all initialized to zero, then the same thing is done again but with the
+    // palette entry flags set to NOCOLLAPSE.
     entries = logicalPalette[0].palPalEntry;
-    for (i = 256; i != 0; i = i + -1)
-    {
-        entries->peRed = '\0';
-        entries->peGreen = '\0';
-        entries->peBlue = '\0';
-        entries->peFlags = '\0';
-        entries = entries + 1;
-    }
-    entries = logicalPalette[0].palPalEntry;
-#if 0
-  do {
-    entries->peRed = 0;
-    entries->peGreen = 0;
-    entries->peBlue = 0;
-    entries->peFlags = PC_NOCOLLAPSE;
-    entries = entries + 1;
-  } while (entries < (logicalPalette->palPalEntry + 256 * sizeof(PALETTEENTRY)));
-#else
     for (i = 256; i != 0; i--)
+    {
+        entries->peRed = 0;
+        entries->peGreen = 0;
+        entries->peBlue = 0;
+        entries->peFlags = 0;
+        entries++;
+    }
+
+    entries = logicalPalette[0].palPalEntry;
+    while (entries < (logicalPalette->palPalEntry + 256))
     {
         entries->peRed = 0;
         entries->peGreen = 0;
@@ -301,28 +302,34 @@ void HTS_SetupPalette(void)
         entries->peFlags = PC_NOCOLLAPSE;
         entries++;
     }
-#endif
+
     hPalette = CreatePalette(logicalPalette);
-    if (hPalette != (HPALETTE)0x0)
+    if (hPalette != NULL)
     {
-        hPalette = SelectPalette(hts_hDC1, hPalette, 0);
-        RealizePalette(hts_hDC1);
-        hPalette = SelectPalette(hts_hDC1, hPalette, 0);
+        hPalette = SelectPalette(hts_windowDC, hPalette, 0);
+        RealizePalette(hts_windowDC);
+        hPalette = SelectPalette(hts_windowDC, hPalette, 0);
         DeleteObject(hPalette);
     }
+
     return;
 }
 
 // 50303c95
-LRESULT HTS_WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
-
+LRESULT CALLBACK HTS_WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
 {
-    HDC hdc;
     PAINTSTRUCT ps;
+    HDC hdc;
 
-    // Rewrote decompiled output to use a switch statement, behaviour may not be 100% accurate
     switch (msg)
     {
+    case WM_ACTIVATE:
+    case WM_ACTIVATEAPP:
+        if (wParam == 0)
+        {
+            hts_keys = hts_keys | 1;
+        }
+        break;
     case WM_PAINT:
         hdc = BeginPaint(hWnd, &ps);
         SelectPalette(hdc, xl_hPalette, 0);
@@ -330,82 +337,68 @@ LRESULT HTS_WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
         HTS_CopyFramebuffer();
         EndPaint(hWnd, &ps);
         return 0;
+    case WM_PALETTECHANGED:
+        hts_keys = hts_keys | 1;
+        break;
     case WM_QUIT:
         hts_keys = hts_keys | 1;
         return 0;
-#ifndef STANDALONE
-    case WM_ACTIVATE:
-    case WM_ACTIVATEAPP:
-#endif
     case WM_DESTROY:
-        if (wParam == 0)
-        {
-            hts_keys = hts_keys | 1;
-        }
-    default:
-        return DefWindowProcA(hWnd, msg, wParam, lParam);
+        break;
     }
+    return DefWindowProcA(hWnd, msg, wParam, lParam);
 }
 
 void HTS_SetupWindow(void)
-
 {
     ATOM wndclass;
     WNDCLASSA wc;
 
     if (DAT_5044fed0 == 0)
     {
-        wc.hCursor = LoadCursorA((HINSTANCE)0x0, (LPCSTR)IDC_ARROW);
-        wc.hIcon = LoadIconA((HINSTANCE)0x0, (LPCSTR)IDI_APPLICATION);
+        wc.hCursor = LoadCursorA(NULL, (LPCSTR)IDC_ARROW);
+        wc.hIcon = LoadIconA(NULL, (LPCSTR)IDI_APPLICATION);
         wc.lpszMenuName = "AppMenu";
         wc.lpszClassName = "zip";
-        wc.hbrBackground = (HBRUSH)0x0;
-        wc.style = 0x102b;
-        wc.lpfnWndProc = (WNDPROC)&HTS_WndProc;
+        wc.hbrBackground = NULL;
+        wc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS | CS_OWNDC | CS_BYTEALIGNCLIENT;
+        wc.lpfnWndProc = HTS_WndProc;
         wc.cbWndExtra = 0;
         wc.cbClsExtra = 0;
         wc.hInstance = xl_hInstance;
         wndclass = RegisterClassA(&wc);
         if (wndclass == 0)
-        {
             return;
-        }
     }
+
     HTS_SetupPalette();
-    hts_hWnd = CreateWindowExA(0,
-                               "zip",
-                               "Hall of Tortured Souls",
-                               WS_OVERLAPPEDWINDOW,
-                               -0x80000000,
-                               0,
-                               328,
-                               226,
-                               (HWND)0x0,
-                               (HMENU)0x0,
-                               (HINSTANCE)0x0,
-                               (LPVOID)0x0);
+
+    hts_hWnd = CreateWindowExA(
+        0, "zip", "Hall of Tortured Souls", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, HTS_SCREEN_WIDTH + 8,
+        HTS_SCREEN_HEIGHT + 26, NULL, NULL, NULL, NULL);
     ShowWindow(hts_hWnd, SW_SHOW);
-    hts_hDC1 = GetDC(hts_hWnd);
-    SelectPalette(hts_hDC1, xl_hPalette, 0);
-    RealizePalette(hts_hDC1);
+
+    hts_windowDC = GetDC(hts_hWnd);
+    SelectPalette(hts_windowDC, xl_hPalette, 0);
+    RealizePalette(hts_windowDC);
+
     return;
 }
 
 void HTS_ReadWindowMessages(void)
-
 {
-    BOOL BVar1;
+    BOOL gotMsg;
     MSG msg;
 
-    BVar1 = PeekMessageA(&msg, (HWND)0x0, 0, 0, 1);
-    if (BVar1 != 0)
+    gotMsg = PeekMessageA(&msg, NULL, 0, 0, 1);
+    if (gotMsg != 0)
     {
         while (msg.message != WM_QUIT)
         {
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
-            BVar1 = PeekMessageA(&msg, (HWND)0x0, 0, 0, 1);
-            if (BVar1 == 0)
+            gotMsg = PeekMessageA(&msg, NULL, 0, 0, 1);
+            if (gotMsg == 0)
             {
                 return;
             }

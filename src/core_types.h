@@ -7,8 +7,7 @@ typedef unsigned char byte;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 
-typedef unsigned int bool;
-enum { false, true };
+typedef enum { false, true } bool;
 
 typedef void undefined;
 typedef char undefined1;

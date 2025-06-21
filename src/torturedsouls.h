@@ -12,6 +12,9 @@
 
 // CONSTANTS
 
+#define HTS_SCREEN_WIDTH	320
+#define HTS_SCREEN_HEIGHT	200
+
 #define HTS_CREDITS_WIDTH	128
 #define HTS_CREDITS_HEIGHT	2048
 #define HTS_CREDITS_SIZE	(HTS_CREDITS_WIDTH * HTS_CREDITS_HEIGHT)
@@ -80,7 +83,7 @@ typedef struct textureinfo
 // GLOBAL FUNCTIONS
 
 /* 50303670 */	bool HTS_MakeCreditsBitmap(void);
-/* 5030386c */	undefined4 HTS_SetupFramebuffer(void);
+/* 5030386c */	bool HTS_SetupFramebuffer(void);
 /* 50303baa */	void HTS_GetScreenAndStride(byte **screenOut,uint *strideOut);
 /* 50303bd8 */	void HTS_CopyFramebuffer(void);
 /* 50303c03 */	void HTS_SetupPalette(void);
@@ -156,7 +159,7 @@ typedef struct textureinfo
 /* 5044c068 */	extern double hts_normalSpeed;
 /* 5044c070 */	extern undefined4 hts_drawingColumn;
 /* 5044c074 */	extern viewspan *hts_viewspans;
-/* 5044c078 */	extern HDC hts_hDC1;
+/* 5044c078 */	extern HDC hts_windowDC;
 /* 5044c07c */	extern byte *hts_creditsTexPixels;
 /* 5044c080 */	extern wall *hts_lastSpanThruWall;
 /* 5044c084 */	extern wall *hts_thruWalls;
