@@ -1,3 +1,9 @@
+/**
+ * window.c
+ *
+ * Window and graphics setup using Win32 and GDI. Also loads the credits data and makes the texture.
+ */
+
 #include "torturedsouls.h"
 
 HDC hts_hDC1;
@@ -7,104 +13,76 @@ HWND hts_hWnd;
 void *hts_dibSectionBits;
 HDC hts_dc;
 HGDIOBJ hts_brush;
-HGDIOBJ HGDIOBJ_50453ce0;
-HBITMAP hts_creditsBitmap;
-HDC hts_hCreditsDC;
-
 LPBITMAPINFO hts_bitmapinfo;
-LPBITMAPINFO hts_copiedBitmap;
+
+LPBITMAPINFO hts_creditsBitmapInfo;
+HBITMAP hts_creditsBitmap;
+HGDIOBJ hts_creditsSelectedBitmap;
+HDC hts_hCreditsDC;
 
 undefined4 DAT_5044fed0 = 0;
 undefined4 DAT_5044d988 = 1;
 
-undefined4 HTS_MakeCreditsBitmap(void)
-
+/**
+ * Parses the encoded credits data, draws the decoded text into a bitmap, and copies the bitmap data to the 15th
+ * texture.
+ */
+bool HTS_MakeCreditsBitmap(void)
 {
-    HGDIOBJ font;
+    HGDIOBJ gdiobj;
     byte *pixels;
     int textLen;
-    uint i;
-    int yp;
-    UINT drawTextFormat;
-    int srcn;
-    byte *encodedText;
-    int xp;
     LPRECT lprc;
-    UINT format;
     RECT rc;
+    UINT drawTextFormat;
+    UINT format;
+    byte *encodedText;
     char text[256];
     byte encodedByte;
+    uint i;
+    int xp;
+    int yp;
+    int srcn;
     int srcp;
 
     rc.top = 0;
     rc.left = 0;
-    rc.right = 128;
-    drawTextFormat = 0x25;
+    rc.right = HTS_CREDITS_WIDTH;
     rc.bottom = 14;
-    pixels = hts_textures[4].pixels;
-    font = GetStockObject(SYSTEM_FIXED_FONT);
-    encodedText = hts_creditsData; // pixels + 0x100;
-    SelectObject(hts_hCreditsDC, font);
+
+    drawTextFormat = DT_CENTER | DT_VCENTER | DT_SINGLELINE;
+
+    gdiobj = GetStockObject(SYSTEM_FIXED_FONT);
+    SelectObject(hts_hCreditsDC, gdiobj);
     SetBkMode(hts_hCreditsDC, TRANSPARENT);
-    SetTextColor(hts_hCreditsDC, 0xff);
+    SetTextColor(hts_hCreditsDC, 0x0000ff);
+
+    encodedText = hts_creditsData; // Originally hts_textures[4].pixels + 0x100;
     encodedByte = *encodedText;
-    do
+    while (encodedByte != 0xff)
     {
-        if (encodedByte == 0xff)
-        {
-            pixels = (byte *)GlobalAlloc(0, 0x40000);
-            hts_textures[14].pixels = pixels;
-            if (hts_textures[14].pixels != NULL)
-            {
-                textLen = 0;
-                xp = 0;
-                do
-                {
-                    srcn = 0;
-                    yp = 0;
-                    do
-                    {
-                        srcp = srcn + textLen;
-                        yp = yp + 0x800;
-                        srcn = srcn + 1;
-                        hts_textures[14].pixels[yp + (-1 - xp)] = hts_creditsTexPixels[srcp];
-                    } while (yp < 0x40000);
-                    textLen = textLen + 128;
-                    xp = xp + 1;
-                } while (textLen < 0x40000);
-                hts_creditsTexPixels = hts_textures[14].pixels;
-                if (hts_hCreditsDC != (HDC)0x0)
-                {
-                    font = SelectObject(hts_hCreditsDC, HGDIOBJ_50453ce0);
-                    DeleteObject(font);
-                    DeleteDC(hts_hCreditsDC);
-                }
-                return 1;
-            }
-            return 0;
-        }
         encodedByte = *encodedText;
         if (encodedByte == 0xfe)
         {
-        LAB_503037cb:
+        nextLine:
             rc.bottom = rc.bottom + 14;
             rc.top = rc.top + 14;
         }
         else if (encodedByte == 0xfd)
         {
-            SetTextColor(hts_hCreditsDC, 0xffff);
+            SetTextColor(hts_hCreditsDC, 0x00ffff);
         }
         else if (encodedByte == 0xfc)
         {
-            SetTextColor(hts_hCreditsDC, 0xff00);
+            SetTextColor(hts_hCreditsDC, 0x00ff00);
         }
         else if (encodedByte == 0xfb)
         {
-            SetTextColor(hts_hCreditsDC, 0xff);
+            SetTextColor(hts_hCreditsDC, 0x0000ff);
         }
         else if (encodedByte == 0xfa)
         {
-            drawTextFormat = 0x24;
+            drawTextFormat = DT_VCENTER | DT_SINGLELINE;
         }
         else
         {
@@ -114,21 +92,52 @@ undefined4 HTS_MakeCreditsBitmap(void)
                 for (i = (uint)encodedByte; i != 0; i = i - 1)
                 {
                     text[textLen] = encodedText[1] ^ 0x4a;
-                    textLen = textLen + 1;
-                    encodedText = encodedText + 1;
+                    textLen++;
+                    encodedText++;
                 }
                 lprc = &rc;
                 text[textLen] = '\0';
                 format = drawTextFormat;
                 textLen = XL_StringLength(text);
                 DrawTextA(hts_hCreditsDC, text, textLen, lprc, format);
-                goto LAB_503037cb;
+                goto nextLine;
             }
-            drawTextFormat = 0x25;
+            drawTextFormat = DT_CENTER | DT_VCENTER | DT_SINGLELINE;
         }
-        encodedText = encodedText + 1;
+        encodedText++;
         encodedByte = *encodedText;
-    } while (true);
+    }
+
+    pixels = GlobalAlloc(0, HTS_CREDITS_SIZE);
+    hts_textures[14].pixels = pixels;
+    if (hts_textures[14].pixels != NULL)
+    {
+        textLen = 0;
+        xp = 0;
+        while (textLen < HTS_CREDITS_SIZE)
+        {
+            srcn = 0;
+            yp = 0;
+            while (yp < HTS_CREDITS_SIZE)
+            {
+                srcp = srcn + textLen;
+                yp += HTS_CREDITS_HEIGHT;
+                srcn++;
+                hts_textures[14].pixels[yp + (-xp - 1)] = hts_creditsTexPixels[srcp];
+            }
+            textLen += HTS_CREDITS_WIDTH;
+            xp++;
+        }
+        hts_creditsTexPixels = hts_textures[14].pixels;
+        if (hts_hCreditsDC != NULL)
+        {
+            gdiobj = SelectObject(hts_hCreditsDC, hts_creditsSelectedBitmap);
+            DeleteObject(gdiobj);
+            DeleteDC(hts_hCreditsDC);
+        }
+        return true;
+    }
+    return false;
 }
 
 undefined4 HTS_SetupFramebuffer(void)
@@ -162,8 +171,8 @@ undefined4 HTS_SetupFramebuffer(void)
         {
             return 0;
         }
-        hts_copiedBitmap = (LPBITMAPINFO)GlobalAlloc(0, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
-        if (hts_copiedBitmap == (LPBITMAPINFO)0x0)
+        hts_creditsBitmapInfo = (LPBITMAPINFO)GlobalAlloc(0, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
+        if (hts_creditsBitmapInfo == (LPBITMAPINFO)0x0)
         {
             return 0;
         }
@@ -224,15 +233,16 @@ undefined4 HTS_SetupFramebuffer(void)
         h = CreateDIBSection(hts_dc, hts_bitmapinfo, 0, &hts_dibSectionBits, (HANDLE)0x0, 0);
         hts_brush = SelectObject(hts_dc, h);
         PatBlt(hts_dc, 0, 0, 320, 200, BLACKNESS);
-        XL_CopyArray((byte *)hts_bitmapinfo, (byte *)hts_copiedBitmap, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
-        (hts_copiedBitmap->bmiHeader).biWidth = 0x80;
-        (hts_copiedBitmap->bmiHeader).biHeight = -0x800;
+        XL_CopyArray(
+            (byte *)hts_bitmapinfo, (byte *)hts_creditsBitmapInfo, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
+        (hts_creditsBitmapInfo->bmiHeader).biWidth = 0x80;
+        (hts_creditsBitmapInfo->bmiHeader).biHeight = -0x800;
         hts_hCreditsDC = CreateCompatibleDC((HDC)0x0);
         SelectPalette(hts_hCreditsDC, hts_palette, 0);
         RealizePalette(hts_hCreditsDC);
         hts_creditsBitmap =
-            CreateDIBSection(hts_hCreditsDC, hts_copiedBitmap, 0, (void **)&hts_creditsTexPixels, (HANDLE)0x0, 0);
-        HGDIOBJ_50453ce0 = SelectObject(hts_hCreditsDC, hts_creditsBitmap);
+            CreateDIBSection(hts_hCreditsDC, hts_creditsBitmapInfo, 0, (void **)&hts_creditsTexPixels, (HANDLE)0x0, 0);
+        hts_creditsSelectedBitmap = SelectObject(hts_hCreditsDC, hts_creditsBitmap);
         PatBlt(hts_hCreditsDC, 0, 0, 0x80, 0x800, 0x42);
         success = HTS_MakeCreditsBitmap();
     }

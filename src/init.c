@@ -243,9 +243,9 @@ void HTS_FreeAll(void)
     {
         GlobalFree(hts_bitmapinfo);
     }
-    if (hts_copiedBitmap != (LPBITMAPINFO)0x0)
+    if (hts_creditsBitmapInfo != NULL)
     {
-        GlobalFree(hts_copiedBitmap);
+        GlobalFree(hts_creditsBitmapInfo);
     }
     if (hts_sectors != NULL)
     {

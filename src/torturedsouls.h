@@ -10,6 +10,12 @@
 
 #define STANDALONE
 
+// CONSTANTS
+
+#define HTS_CREDITS_WIDTH	128
+#define HTS_CREDITS_HEIGHT	2048
+#define HTS_CREDITS_SIZE	(HTS_CREDITS_WIDTH * HTS_CREDITS_HEIGHT)
+
 // STRUCT DEFINITIONS
 
 typedef struct sector
@@ -73,7 +79,7 @@ typedef struct textureinfo
 
 // GLOBAL FUNCTIONS
 
-/* 50303670 */	undefined4 HTS_MakeCreditsBitmap(void);
+/* 50303670 */	bool HTS_MakeCreditsBitmap(void);
 /* 5030386c */	undefined4 HTS_SetupFramebuffer(void);
 /* 50303baa */	void HTS_GetScreenAndStride(byte **screenOut,uint *strideOut);
 /* 50303bd8 */	void HTS_CopyFramebuffer(void);
@@ -156,7 +162,7 @@ typedef struct textureinfo
 /* 5044c084 */	extern wall *hts_thruWalls;
 /* 5044c088 */	extern int hts_playerXFixed;
 /* 5044c08c */	extern int hts_playerYFixed;
-/* 5044c090 */	extern LPBITMAPINFO hts_copiedBitmap;
+/* 5044c090 */	extern LPBITMAPINFO hts_creditsBitmapInfo;
 /* 5044c098 */	extern double hts_viewSin;
 /* 5044c0a0 */	extern byte *hts_screen; // pointer to framebuffer data
 /* 5044c0a8 */	extern double hts_playerRot;
@@ -169,7 +175,7 @@ typedef struct textureinfo
 /* 50453cd4 */	extern void *hts_dibSectionBits;
 /* 50453cd8 */	extern HDC hts_dc;
 /* 50453cdc */	extern HGDIOBJ hts_brush;
-/* 50453ce0 */	extern HGDIOBJ HGDIOBJ_50453ce0;
+/* 50453ce0 */	extern HGDIOBJ hts_creditsSelectedBitmap;
 /* 50453ce4 */	extern HBITMAP hts_creditsBitmap;
 /* 50453ce8 */	extern HDC hts_hCreditsDC;
 /* 50453cec */	extern sector *hts_sectors;
