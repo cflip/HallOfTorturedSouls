@@ -1,15 +1,22 @@
 # Hall of Tortured Souls
 
-This is the reverse engineered source code for the hidden "Hall of Tortured Souls" game in Excel 95.
+This is the decompiled source code for the hidden "Hall of Tortured Souls" game in Excel 95.
 
 ## Standalone Build
 
-You can build a standalone version of the game with [w64devkit](https://github.com/skeeto/w64devkit) by running `make` in the `src` directory.
+A standalone version of the game that runs on modern Windows can be compiled from the source code.
 
 This build makes a few changes to the original game:
 - A main function is added to directly call the game setup and loop function.
 - The main loop now sleeps for 20ms, otherwise the game is unplayably fast on modern CPUs.
 - Clicking outside of the window no longer quits the game.
+
+There are two options for compiling the code:
+### Visual Studio
+Simply open the Visual Studio solution file and build the project.
+
+### w64devkit
+Open a [w64devkit](https://github.com/skeeto/w64devkit) terminal and run `make` in the `src` directory.
 
 ## Discoveries
 Here are a few things I've discovered while looking around in the code that I haven't seen mentioned anywhere else:
