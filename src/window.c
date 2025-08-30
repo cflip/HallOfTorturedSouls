@@ -23,6 +23,15 @@ HDC hts_hCreditsDC;
 undefined4 DAT_5044fed0 = 0;
 undefined4 DAT_5044d988 = 1;
 
+// A version of the LOGPALETTE struct that contains space for 256 PALETTEENTRYs to make stack allocation easier.
+// It can be cast to a LOGPALETTE pointer when needed for Windows calls.
+typedef struct
+{
+    WORD palVersion;
+    WORD palNumEntries;
+    PALETTEENTRY palPalEntry[256];
+} LOGPALETTE256;
+
 /**
  * Parses the encoded credits data, draws the decoded text into a bitmap, and copies the bitmap data to the 15th
  * texture.
@@ -151,14 +160,14 @@ bool HTS_SetupFramebuffer(void)
     int srcIndex;
     int dstIndex;
     PALETTEENTRY *entries;
-    LOGPALETTE logicalPalette[128];
+    LOGPALETTE256 logicalPalette;
     BYTE colour;
 
     success = 0;
 
-    logicalPalette[0].palVersion = 0x300;
-    logicalPalette[0].palNumEntries = 256;
-    entries = logicalPalette[0].palPalEntry;
+    logicalPalette.palVersion = 0x300;
+    logicalPalette.palNumEntries = 256;
+    entries = logicalPalette.palPalEntry;
     for (srcIndex = 256; srcIndex != 0; srcIndex--)
     {
         entries->peRed = 0;
@@ -188,24 +197,24 @@ bool HTS_SetupFramebuffer(void)
         hts_bitmapinfo->bmiHeader.biHeight = -HTS_SCREEN_HEIGHT;
 
         hdc = GetDC(NULL);
-        GetSystemPaletteEntries(hdc, 0, 10, logicalPalette[0].palPalEntry);
-        GetSystemPaletteEntries(hdc, 246, 10, &logicalPalette[0].palPalEntry[246]);
+        GetSystemPaletteEntries(hdc, 0, 10, logicalPalette.palPalEntry);
+        GetSystemPaletteEntries(hdc, 246, 10, &logicalPalette.palPalEntry[246]);
         ReleaseDC(NULL, hdc);
 
         srcIndex = 0;
         while (srcIndex < 10)
         {
-            hts_bitmapinfo->bmiColors[srcIndex].rgbRed = logicalPalette[0].palPalEntry[srcIndex].peRed;
-            hts_bitmapinfo->bmiColors[srcIndex].rgbGreen = logicalPalette[0].palPalEntry[srcIndex].peGreen;
-            hts_bitmapinfo->bmiColors[srcIndex].rgbBlue = logicalPalette[0].palPalEntry[srcIndex].peBlue;
+            hts_bitmapinfo->bmiColors[srcIndex].rgbRed = logicalPalette.palPalEntry[srcIndex].peRed;
+            hts_bitmapinfo->bmiColors[srcIndex].rgbGreen = logicalPalette.palPalEntry[srcIndex].peGreen;
+            hts_bitmapinfo->bmiColors[srcIndex].rgbBlue = logicalPalette.palPalEntry[srcIndex].peBlue;
             hts_bitmapinfo->bmiColors[srcIndex].rgbReserved = 0;
-            logicalPalette[0].palPalEntry[srcIndex].peFlags = 0;
+            logicalPalette.palPalEntry[srcIndex].peFlags = 0;
 
-            hts_bitmapinfo->bmiColors[srcIndex + 246].rgbRed = logicalPalette[0].palPalEntry[srcIndex + 246].peRed;
-            hts_bitmapinfo->bmiColors[srcIndex + 246].rgbGreen = logicalPalette[0].palPalEntry[srcIndex + 246].peGreen;
-            hts_bitmapinfo->bmiColors[srcIndex + 246].rgbBlue = logicalPalette[0].palPalEntry[srcIndex + 246].peBlue;
+            hts_bitmapinfo->bmiColors[srcIndex + 246].rgbRed = logicalPalette.palPalEntry[srcIndex + 246].peRed;
+            hts_bitmapinfo->bmiColors[srcIndex + 246].rgbGreen = logicalPalette.palPalEntry[srcIndex + 246].peGreen;
+            hts_bitmapinfo->bmiColors[srcIndex + 246].rgbBlue = logicalPalette.palPalEntry[srcIndex + 246].peBlue;
             hts_bitmapinfo->bmiColors[srcIndex + 246].rgbReserved = 0;
-            logicalPalette[0].palPalEntry[srcIndex + 246].peFlags = 0;
+            logicalPalette.palPalEntry[srcIndex + 246].peFlags = 0;
             srcIndex++;
         }
 
@@ -214,25 +223,25 @@ bool HTS_SetupFramebuffer(void)
         while (dstIndex < (246 * 4))
         {
             colour = hts_paletteColours[srcIndex];
-            (&logicalPalette[0].palPalEntry[0].peRed)[dstIndex] = colour;
+            (&logicalPalette.palPalEntry[0].peRed)[dstIndex] = colour;
             (&hts_bitmapinfo->bmiColors[0].rgbRed)[dstIndex] = colour;
 
             colour = hts_paletteColours[srcIndex + 1];
-            (&logicalPalette[0].palPalEntry[0].peGreen)[dstIndex] = colour;
+            (&logicalPalette.palPalEntry[0].peGreen)[dstIndex] = colour;
             (&hts_bitmapinfo->bmiColors[0].rgbGreen)[dstIndex] = colour;
 
             colour = hts_paletteColours[srcIndex + 2];
-            (&logicalPalette[0].palPalEntry[0].peBlue)[dstIndex] = colour;
+            (&logicalPalette.palPalEntry[0].peBlue)[dstIndex] = colour;
             (&hts_bitmapinfo->bmiColors[0].rgbBlue)[dstIndex] = colour;
 
             (&hts_bitmapinfo->bmiColors[0].rgbReserved)[dstIndex] = 0;
-            (&logicalPalette[0].palPalEntry[0].peFlags)[dstIndex] = PC_NOCOLLAPSE;
+            (&logicalPalette.palPalEntry[0].peFlags)[dstIndex] = PC_NOCOLLAPSE;
 
             dstIndex += 4;
             srcIndex += 3;
         };
 
-        hts_palette = CreatePalette(logicalPalette);
+        hts_palette = CreatePalette((LOGPALETTE *)&logicalPalette);
 
         hts_dc = CreateCompatibleDC(NULL);
         SelectPalette(hts_dc, hts_palette, 0);
@@ -275,15 +284,17 @@ void HTS_SetupPalette(void)
 {
     PALETTEENTRY *entries;
     HPALETTE hPalette;
-    LOGPALETTE logicalPalette[128]; // Need enough room on the stack for 256 palette entries
+    LOGPALETTE256 logicalPalette;
     int i;
 
-    logicalPalette[0].palVersion = 0x300;
-    logicalPalette[0].palNumEntries = 256;
+    logicalPalette.palVersion = 0x300;
+    logicalPalette.palNumEntries = 256;
 
     // Coding oversight? The palette entries are all initialized to zero, then the same thing is done again but with the
     // palette entry flags set to NOCOLLAPSE.
-    entries = logicalPalette[0].palPalEntry;
+    // The first loop is implemented with a "rep stosd" instruction in the original exectuable, it's possible this was a
+    // memset call optimized by the compiler.
+    entries = logicalPalette.palPalEntry;
     for (i = 256; i != 0; i--)
     {
         entries->peRed = 0;
@@ -293,8 +304,8 @@ void HTS_SetupPalette(void)
         entries++;
     }
 
-    entries = logicalPalette[0].palPalEntry;
-    while (entries < (logicalPalette->palPalEntry + 256))
+    entries = logicalPalette.palPalEntry;
+    while (entries < (logicalPalette.palPalEntry + 256))
     {
         entries->peRed = 0;
         entries->peGreen = 0;
@@ -303,7 +314,7 @@ void HTS_SetupPalette(void)
         entries++;
     }
 
-    hPalette = CreatePalette(logicalPalette);
+    hPalette = CreatePalette((LOGPALETTE *)&logicalPalette);
     if (hPalette != NULL)
     {
         hPalette = SelectPalette(hts_windowDC, hPalette, 0);
